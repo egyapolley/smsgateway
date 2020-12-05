@@ -35,9 +35,9 @@ const options = {
         const messages = {}
 
         const pool = mysql.createPool({
-            host: '172.25.37.23',
-            user: 'polley',
-            password: 'egy@poli123',
+            host: '172.25.33.141',
+            user: 'mme',
+            password: 'mme',
             database: 'smsNotification'
         });
         const promisePool = pool.promise();
@@ -45,7 +45,7 @@ const options = {
         rows.forEach(function (row) {
             messages[row.id] = row.MessageBody;
         });
-        //console.log(messages);
+
 
         http.createServer((req, res) => {
             let alldata = ""
@@ -58,7 +58,6 @@ const options = {
 
                 let jsonObject = parser.parse(alldata, options);
                 let soapBody = jsonObject.Envelope.Body.sendSMS.inputValues;
-                console.log(soapBody)
 
                 let to_msisdn = soapBody.phoneContact.toString();
                 let messageId = soapBody.smsId.toString();
