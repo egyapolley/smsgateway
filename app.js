@@ -61,8 +61,17 @@ const options = {
 
                 let to_msisdn = soapBody.phoneContact.toString();
                 let messageId = soapBody.smsId.toString();
+
                 let surflineNumber = soapBody.callingSubscriber.toString();
                 let smsContent = (messages[messageId].replace("XXXXXX","0"+surflineNumber)).toString();
+
+
+
+                if (messageId === "5001"){
+                    let smsDetail = soapBody.details.toString();
+                    smsContent = smsContent.replace("CCCCCC", smsDetail)
+
+                }
 
                 const url = "http://api.hubtel.com/v1/messages/";
 
