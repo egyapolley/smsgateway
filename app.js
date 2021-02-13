@@ -3,6 +3,7 @@ const http = require("http");
 const parser = require("fast-xml-parser");
 
 const he = require("he");
+const moment = require("moment");
 
 const axios = require("axios");
 
@@ -117,7 +118,7 @@ const bundleIDMapping = {
                         smsContent = smsContent.replace("CCCCCC", smsDetail)
                     }
 
-                    if (["2001", "2002", "2003", "2004"].includes(messageId)) {
+                    if (["2001", "2002", "2003", "2004","2006"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
                         let msisdn = "233" + surflineNumber;
                         switch (messageId) {
@@ -148,7 +149,13 @@ const bundleIDMapping = {
                                 let expiry_date = promo_balance2 && promo_balance2.expiry_date?promo_balance2.expiry_date:"";
                                 smsContent = smsContent.replace(/DDDDDD/g, expiry_date);
                                 break;
+                            case "2006":
+                                const date =moment().format("DD-MM-YYYY");
+                                smsContent = smsContent.replace("DD-MM-YYYY", date);
+                                break;
+
                         }
+
                         await pushSMS_Save(smsContent, to_msisdn, res,msisdn,smsType)
 
                     }else {
