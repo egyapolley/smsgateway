@@ -118,7 +118,7 @@ const bundleIDMapping = {
                         smsContent = smsContent.replace("CCCCCC", smsDetail)
                     }
 
-                    if (["2001", "2002", "2003", "2004","2006"].includes(messageId)) {
+                    if (["2001", "2002", "2003", "2004","2005","2006","2007"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
                         let msisdn = "233" + surflineNumber;
                         switch (messageId) {
@@ -141,9 +141,6 @@ const bundleIDMapping = {
                                 if (!bundleName) bundleName ="a";
                                 smsContent = smsContent.replace("BBBBBB",`${bundleName}`);
                                 break;
-                            case "2003":
-                                break;
-
                             case "2004":
                                 const promo_balance2 = await getPromoBalance(msisdn);
                                 let expiry_date = promo_balance2 && promo_balance2.expiry_date?promo_balance2.expiry_date:"";
