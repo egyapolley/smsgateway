@@ -106,6 +106,7 @@ const bundleIDMapping = {
                     let jsonObject = parser.parse(alldata, options);
                     let soapBody = jsonObject.Envelope.Body.sendSMS.inputValues;
 
+
                     let to_msisdn = soapBody.phoneContact.toString();
                     let messageId = soapBody.smsId.toString();
 
@@ -118,7 +119,7 @@ const bundleIDMapping = {
                         smsContent = smsContent.replace("CCCCCC", smsDetail)
                     }
 
-                    if (["2001", "2002", "2003", "2004","2005","2006","2007"].includes(messageId)) {
+                    if (["2001", "2002", "2003", "2004","2005","2006","2007","2008"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
                         let msisdn = "233" + surflineNumber;
                         switch (messageId) {
@@ -150,7 +151,10 @@ const bundleIDMapping = {
                                 const date =moment().format("DD-MM-YYYY");
                                 smsContent = smsContent.replace("DD-MM-YYYY", date);
                                 break;
-
+                            case "2008":
+                                let smsData = soapBody.data.toString();
+                                smsContent=smsContent.replace(/YYYYYY/g,`${smsData}`)
+                                break;
                         }
 
                         await pushSMS_Save(smsContent, to_msisdn, res,msisdn,smsType)
