@@ -153,7 +153,12 @@ const bundleIDMapping = {
                                 smsContent = smsContent.replace(/DDDDDD/g, expiry_date);
                                 break;
                             case "2006":
-                                const date =moment().format("DD-MM-YYYY");
+                                let date;
+                                if (soapBody.data){
+                                    date =soapBody.data.toString();
+                                }else {
+                                    date =moment().format("DD-MM-YYYY");
+                                }
                                 smsContent = smsContent.replace("DD-MM-YYYY", date);
                                 break;
                             case "2008":
