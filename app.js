@@ -125,14 +125,19 @@ const bundleIDMapping = {
                         switch (messageId) {
                             case "2001":
                                 let used_value;
-                                const promo_balance = await getPromoBalance(msisdn);
-                                if (promo_balance) {
-                                    let current_balance = parseFloat(promo_balance.value);
-                                    used_value = ((51200 - current_balance)/1024.0).toFixed(3);
+                                if (soapBody.data){
+                                    used_value =soapBody.data.toString();
+                                }else {
+                                    const promo_balance = await getPromoBalance(msisdn);
+                                    if (promo_balance) {
+                                        let current_balance = parseFloat(promo_balance.value);
+                                        used_value = ((51200 - current_balance)/1024.0).toFixed(3);
+                                    } else {
+                                        used_value = 50;
+                                    }
 
-                                } else {
-                                    used_value = 50;
                                 }
+
                                 smsContent = smsContent.replace("UUUUUU",`${used_value}`);
                                 break;
 
