@@ -65,6 +65,7 @@ const bundleIDMapping = {
     42:"SME Starter",
     43:"SME Super",
     44:"SME Ultra",
+    45:"SME Maxi",
     50:"Ride ON Lite",
     51:"Ride ON",
     60:"Bolt Lite",
