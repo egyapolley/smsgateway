@@ -120,6 +120,15 @@ const bundleIDMapping = {
                         smsContent = smsContent.replace("CCCCCC", smsDetail)
                     }
 
+
+                    if (messageId === "990") {
+                        let smsDetail = soapBody.details.toString();
+                        if (smsDetail.includes("j4u")){
+                            smsDetail =`${smsDetail.replace(/j4u/,"")}GB`
+                        }
+                        smsContent = smsContent.replace("CCCCCC", smsDetail)
+                    }
+
                     if (["2001", "2002", "2003", "2004","2005","2006","2007","2008"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
                         let msisdn = "233" + surflineNumber;
