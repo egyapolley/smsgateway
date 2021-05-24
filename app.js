@@ -73,7 +73,12 @@ const bundleIDMapping = {
     70:"Weekend(10.5GB)"
 };
 
+
+
 (async () => {
+
+    const port =5100
+    const hostname="172.25.33.141"
 
 
 
@@ -112,7 +117,7 @@ const bundleIDMapping = {
                     let messageId = soapBody.smsId.toString();
 
                     let surflineNumber = soapBody.callingSubscriber.toString();
-                    let smsContent = (messages[messageId].replace("XXXXXX", "0" + surflineNumber)).toString();
+                    let smsContent =messageId ?(messages[messageId].replace("XXXXXX", "0" + surflineNumber)).toString():null;
 
 
                     if (messageId === "5001") {
@@ -131,6 +136,7 @@ const bundleIDMapping = {
 
                     if (["2001", "2002", "2003", "2004","2005","2006","2007","2008"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
+
                         let msisdn = "233" + surflineNumber;
                         switch (messageId) {
                             case "2001":
@@ -147,33 +153,31 @@ const bundleIDMapping = {
                                     }
 
                                 }
-
-                                smsContent = smsContent.replace("UUUUUU",`${used_value}`);
+                                if ( await updateTAG(msisdn)){
+                                    smsContent = smsContent.replace("UUUUUU",`${used_value}`);
+                                }else {
+                                    smsContent = null
+                                }
                                 break;
 
                             case "2002":
-                                console.log(msisdn)
-                                let bundleName = await getBundlePurchased(msisdn);
-                                if (!bundleName) bundleName ="a";
-                                smsContent = smsContent.replace("BBBBBB",`${bundleName}`);
+                                smsContent=null
+
+                               let bundleId = await getBundlePurchased(msisdn);
+                               if (bundleId){
+                                 let bonus_details =  getBonusAmount(bundleId)
+                                   if (bonus_details){
+                                       smsContent=  `You have successfully purchased ${bonus_details.data_purchased}GB bundle on 0${surflineNumber}. You've received ${bonus_details.bonus_data_MB}MB as bonus valid for ${bonus_details.bonus_validity} days. Dial *718*77# to do more. Thank you`
+                                   }
+                               }
                                 break;
+                            case "2003":
                             case "2004":
-                                const promo_balance2 = await getPromoBalance(msisdn);
-                                let expiry_date = promo_balance2 && promo_balance2.expiry_date?promo_balance2.expiry_date:"";
-                                smsContent = smsContent.replace(/DDDDDD/g, expiry_date);
-                                break;
+                            case "2005":
                             case "2006":
-                                let date;
-                                if (soapBody.data){
-                                    date =soapBody.data.toString();
-                                }else {
-                                    date =moment().format("DD-MM-YYYY");
-                                }
-                                smsContent = smsContent.replace("DD-MM-YYYY", date);
-                                break;
+                            case "2007":
                             case "2008":
-                                let smsData = soapBody.data.toString();
-                                smsContent=smsContent.replace(/YYYYYY/g,`${smsData}`)
+                                if (!await updateTAG(msisdn)) smsContent=null
                                 break;
                         }
 
@@ -195,8 +199,8 @@ const bundleIDMapping = {
             });
 
 
-        }).listen(5100, () => {
-            console.log("App listening on port on 5100")
+        }).listen(port,hostname, () => {
+            console.log(`App listening  on  http://${hostname}:${port}`)
         })
 
 
@@ -233,33 +237,53 @@ function pushSMS(smsContent, to_msisdn, res) {
 }
 
 async function pushSMS_Save(smsContent, to_msisdn, res, surflineNumber, smsType) {
-    let messagebody = {
-        Content: smsContent,
-        FlashMessage: false,
-        From: "Surfline",
-        To: to_msisdn,
-        Type: 0,
-        RegisteredDelivery: true
-    };
+    console.log(typeof smsType, smsType)
+    console.log(smsType.includes("others"))
 
-    axios.post(url, messagebody,
-        {headers: headers})
-        .then(function (response) {
-            console.log(response.data);
-            let MessageId =response.data && response.data.MessageId?response.data.MessageId:null;
-            SentSMS.create({surflineNumber,smsType,smsContent,phoneContact: to_msisdn,MessageId}).then(sentSMS =>{
-                res.end("success")
-            }).catch(error =>{
-                console.log(error)
-                res.end("success")
+    if (smsContent){
+        let messagebody = {
+            Content: smsContent,
+            FlashMessage: false,
+            From: "Surfline",
+            To: to_msisdn,
+            Type: 0,
+            RegisteredDelivery: true
+        };
 
-            })
+        axios.post(url, messagebody,
+            {headers: headers})
+            .then(function (response) {
+                console.log(response.data);
+                let MessageId =response.data && response.data.MessageId?response.data.MessageId:null;
+                if (!smsType.includes('others')){
+                    SentSMS.create({surflineNumber,smsType,smsContent,phoneContact: to_msisdn,MessageId}).then(sentSMS =>{
+                        res.end("success")
+                    }).catch(error =>{
+                        console.log(error)
+                       return  res.end("success")
 
-        }).catch(function (error) {
-        console.log(error);
+                    })
+
+                }else {
+                    return  res.end("success")
+
+                }
+
+
+
+            }).catch(function (error) {
+            console.log(error);
+            res.end("success")
+
+        })
+
+    }else {
         res.end("success")
 
-    })
+    }
+
+
+
 
 }
 
@@ -340,16 +364,79 @@ async function getBundlePurchased(subscriberNumber) {
         let jsonObj = parser.parse(body, options);
         const soapResponseBody = jsonObj.Envelope.Body;
         if (soapResponseBody.CCSCD1_QRYResponse && parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString()) > 0) {
-            let bundleId =  parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString());
-            return bundleIDMapping[bundleId]?bundleIDMapping[bundleId]:null;
-        } else {
-            return null;
-        }
+            return  parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString());
+        } else  return null;
 
     } catch (error) {
         console.log(error);
         return null;
 
     }
+
+}
+
+async function updateTAG(subscriberNumber) {
+
+
+
+    try {
+        const soapUrl = "http://172.25.39.13:3004";
+        const soapHeaders = {
+            'User-Agent': 'NodeApp',
+            'Content-Type': 'text/xml;charset=UTF-8',
+            'SOAPAction': 'urn:CCSCD1_QRY',
+        };
+
+        let xmlBody = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pi="http://xmlns.oracle.com/communications/ncc/2009/05/15/pi">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pi:CCSCD9_CHG>
+         <pi:username>admin</pi:username>
+         <pi:password>admin</pi:password>
+         <pi:MSISDN>${subscriberNumber}</pi:MSISDN>
+         <pi:TAG>NewActivateTag</pi:TAG>
+         <pi:VALUE>50GB_Promo</pi:VALUE>
+      </pi:CCSCD9_CHG>
+   </soapenv:Body>
+</soapenv:Envelope>`;
+
+        const {response} = await soapRequest({url: soapUrl, headers: soapHeaders, xml: xmlBody, timeout: 10000}); // Optional timeout parameter(milliseconds)
+        const {body} = response;
+
+        let jsonObj = parser.parse(body, options);
+        const soapResponseBody = jsonObj.Envelope.Body;
+        return !!(soapResponseBody.CCSCD9_CHGResponse && soapResponseBody.CCSCD9_CHGResponse.AUTH);
+
+    } catch (error) {
+        console.log(error);
+        return false
+
+    }
+
+}
+function getBonusAmount(bundleId) {
+    if (bundleId >= 10 && bundleId <= 19){
+        let bonus_data_KB, bonus_data_MB
+
+        let data_purchased = bundleIDMapping[bundleId],bonus_validity
+
+        if (bundleId <= 14 ){
+            bonus_data_KB =Math.trunc((parseFloat(data_purchased)/2)*1048576).toString()
+            bonus_data_MB = Math.trunc(bonus_data_KB/1024).toString()
+            bonus_validity="15"
+
+        }else {
+            bonus_data_KB =Math.trunc((parseFloat(data_purchased))*1048576).toString()
+            bonus_data_MB = Math.trunc(bonus_data_KB/1024).toString()
+            bonus_validity="30"
+        }
+        return  {
+            bonus_data_KB,
+            bonus_data_MB,
+            data_purchased,
+            bonus_validity
+        }
+
+    }else return null
 
 }
