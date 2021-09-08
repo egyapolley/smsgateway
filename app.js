@@ -41,45 +41,43 @@ const SentSMS = require("./sequeilze_dir/sql_models");
 
 
 const bundleIDMapping = {
-    10:"1.6GB",
-    11:"3.2GB",
-    12:"5GB",
-    13:"7GB",
-    14:"12GB",
-    15:"30GB",
-    16:"45GB",
-    17:"65GB",
-    18:"125GB",
-    19:"185GB",
-    20:"Night Pack",
-    21:"Unlimited Bundle",
-    31:"Always ON Standard",
-    32:"Always On Super",
-    33:"Always ON Ultra",
-    34:"Always ON Starter",
-    35:"Always ON Streamer",
-    36:"Always ON Lite",
-    37:"Always ON Maxi",
-    40:"SME Lite",
-    41:"SME Standard",
-    42:"SME Starter",
-    43:"SME Super",
-    44:"SME Ultra",
-    45:"SME Maxi",
-    50:"Ride ON Lite",
-    51:"Ride ON",
-    60:"Bolt Lite",
-    61:"Bolt",
-    70:"Weekend(10.5GB)"
+    10: "1.6GB",
+    11: "3.2GB",
+    12: "5GB",
+    13: "7GB",
+    14: "12GB",
+    15: "30GB",
+    16: "45GB",
+    17: "65GB",
+    18: "125GB",
+    19: "185GB",
+    20: "Night Pack",
+    21: "Unlimited Bundle",
+    31: "Always ON Standard",
+    32: "Always On Super",
+    33: "Always ON Ultra",
+    34: "Always ON Starter",
+    35: "Always ON Streamer",
+    36: "Always ON Lite",
+    37: "Always ON Maxi",
+    40: "SME Lite",
+    41: "SME Standard",
+    42: "SME Starter",
+    43: "SME Super",
+    44: "SME Ultra",
+    45: "SME Maxi",
+    50: "Ride ON Lite",
+    51: "Ride ON",
+    60: "Bolt Lite",
+    61: "Bolt",
+    70: "Weekend(10.5GB)"
 };
-
 
 
 (async () => {
 
-    const port =5100
-    const hostname="172.25.33.141"
-
+    const port = 5100
+    const hostname = "172.25.33.141"
 
 
     try {
@@ -97,7 +95,7 @@ const bundleIDMapping = {
             messages[row.id] = row.MessageBody;
         });
 
-        sequelize.sync({logging:false}).then(() =>console.log("Sequelize Connected"));
+        sequelize.sync({logging: false}).then(() => console.log("Sequelize Connected"));
         http.createServer((req, res) => {
             let alldata = ""
             req.on("data", chunk => {
@@ -117,7 +115,7 @@ const bundleIDMapping = {
                     let messageId = soapBody.smsId.toString();
 
                     let surflineNumber = soapBody.callingSubscriber.toString();
-                    let smsContent =messageId ?(messages[messageId].replace("XXXXXX", "0" + surflineNumber)).toString():null;
+                    let smsContent = messageId ? (messages[messageId].replace("XXXXXX", "0" + surflineNumber)).toString() : null;
 
 
                     if (messageId === "5001") {
@@ -128,48 +126,48 @@ const bundleIDMapping = {
 
                     if (messageId === "990") {
                         let smsDetail = soapBody.details.toString();
-                        if (smsDetail.includes("j4u")){
-                            smsDetail =`${smsDetail.replace(/j4u/,"")}GB`
+                        if (smsDetail.includes("j4u")) {
+                            smsDetail = `${smsDetail.replace(/j4u/, "")}GB`
                         }
                         smsContent = smsContent.replace("CCCCCC", smsDetail)
                     }
 
-                    if (["2001", "2002", "2003", "2004","2005","2006","2007","2008"].includes(messageId)) {
+                    if (["2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009"].includes(messageId)) {
                         let smsType = soapBody.details.toString();
 
                         let msisdn = "233" + surflineNumber;
                         switch (messageId) {
                             case "2001":
                                 let used_value;
-                                if (soapBody.data){
-                                    used_value =soapBody.data.toString();
-                                }else {
+                                if (soapBody.data) {
+                                    used_value = soapBody.data.toString();
+                                } else {
                                     const promo_balance = await getPromoBalance(msisdn);
                                     if (promo_balance) {
                                         let current_balance = parseFloat(promo_balance.value);
-                                        used_value = ((51200 - current_balance)/1024.0).toFixed(3);
+                                        used_value = ((51200 - current_balance) / 1024.0).toFixed(3);
                                     } else {
                                         used_value = 50;
                                     }
 
                                 }
-                                if ( await updateTAG(msisdn)){
-                                    smsContent = smsContent.replace("UUUUUU",`${used_value}`);
-                                }else {
+                                if (await updateTAG(msisdn)) {
+                                    smsContent = smsContent.replace("UUUUUU", `${used_value}`);
+                                } else {
                                     smsContent = null
                                 }
                                 break;
 
                             case "2002":
-                                smsContent=null
+                                smsContent = null
 
-                               let bundleId = await getBundlePurchased(msisdn);
-                               if (bundleId){
-                                 let bonus_details =  getBonusAmount(bundleId)
-                                   if (bonus_details){
-                                       smsContent=  `You have successfully purchased ${bonus_details.data_purchased}GB bundle on 0${surflineNumber}. You've received ${bonus_details.bonus_data_MB}MB as bonus valid for ${bonus_details.bonus_validity} days. Dial *718*77# to do more. Thank you`
-                                   }
-                               }
+                                let bundleId = await getBundlePurchased(msisdn);
+                                if (bundleId) {
+                                    let bonus_details = getBonusAmount(bundleId)
+                                    if (bonus_details) {
+                                        smsContent = `You have successfully purchased ${bonus_details.data_purchased}GB bundle on 0${surflineNumber}. You've received ${bonus_details.bonus_data_MB}MB as bonus valid for ${bonus_details.bonus_validity} days. Dial *718*77# to do more. Thank you`
+                                    }
+                                }
                                 break;
                             case "2003":
                             case "2004":
@@ -177,20 +175,30 @@ const bundleIDMapping = {
                             case "2006":
                             case "2007":
                             case "2008":
-                                if (!await updateTAG(msisdn)) smsContent=null
+                                if (!await updateTAG(msisdn)) smsContent = null
                                 break;
+
+                            case "2009":
+                                let tempbdlid = await getBundlePurchased(msisdn);
+                                if (tempbdlid) {
+                                    let bundleName = bundleIDMapping[tempbdlid]
+                                    smsContent = smsContent.replace("BBBBBB", bundleName)
+                                } else {
+                                    smsContent = smsContent.replace("BBBBBB", "")
+                                }
+                                break
+
                         }
 
-                        await pushSMS_Save(smsContent, to_msisdn, res,msisdn,smsType)
+                        await pushSMS_Save(smsContent, to_msisdn, res, msisdn, smsType)
 
-                    }else {
+                    } else {
                         pushSMS(smsContent, to_msisdn, res)
 
                     }
 
 
-
-                }catch (error) {
+                } catch (error) {
                     console.log(error);
                     res.end("success")
 
@@ -199,7 +207,7 @@ const bundleIDMapping = {
             });
 
 
-        }).listen(port,hostname, () => {
+        }).listen(port, hostname, () => {
             console.log(`App listening  on  http://${hostname}:${port}`)
         })
 
@@ -240,7 +248,7 @@ async function pushSMS_Save(smsContent, to_msisdn, res, surflineNumber, smsType)
     console.log(typeof smsType, smsType)
     console.log(smsType.includes("others"))
 
-    if (smsContent){
+    if (smsContent) {
         let messagebody = {
             Content: smsContent,
             FlashMessage: false,
@@ -254,21 +262,26 @@ async function pushSMS_Save(smsContent, to_msisdn, res, surflineNumber, smsType)
             {headers: headers})
             .then(function (response) {
                 console.log(response.data);
-                let MessageId =response.data && response.data.MessageId?response.data.MessageId:null;
-                if (!smsType.includes('others')){
-                    SentSMS.create({surflineNumber,smsType,smsContent,phoneContact: to_msisdn,MessageId}).then(sentSMS =>{
+                let MessageId = response.data && response.data.MessageId ? response.data.MessageId : null;
+                if (!smsType.includes('others')) {
+                    SentSMS.create({
+                        surflineNumber,
+                        smsType,
+                        smsContent,
+                        phoneContact: to_msisdn,
+                        MessageId
+                    }).then(sentSMS => {
                         res.end("success")
-                    }).catch(error =>{
+                    }).catch(error => {
                         console.log(error)
-                       return  res.end("success")
+                        return res.end("success")
 
                     })
 
-                }else {
-                    return  res.end("success")
+                } else {
+                    return res.end("success")
 
                 }
-
 
 
             }).catch(function (error) {
@@ -277,12 +290,10 @@ async function pushSMS_Save(smsContent, to_msisdn, res, surflineNumber, smsType)
 
         })
 
-    }else {
+    } else {
         res.end("success")
 
     }
-
-
 
 
 }
@@ -364,8 +375,8 @@ async function getBundlePurchased(subscriberNumber) {
         let jsonObj = parser.parse(body, options);
         const soapResponseBody = jsonObj.Envelope.Body;
         if (soapResponseBody.CCSCD1_QRYResponse && parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString()) > 0) {
-            return  parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString());
-        } else  return null;
+            return parseInt(soapResponseBody.CCSCD1_QRYResponse.BALANCE.toString());
+        } else return null;
 
     } catch (error) {
         console.log(error);
@@ -376,7 +387,6 @@ async function getBundlePurchased(subscriberNumber) {
 }
 
 async function updateTAG(subscriberNumber) {
-
 
 
     try {
@@ -414,29 +424,30 @@ async function updateTAG(subscriberNumber) {
     }
 
 }
+
 function getBonusAmount(bundleId) {
-    if (bundleId >= 10 && bundleId <= 19){
+    if (bundleId >= 10 && bundleId <= 19) {
         let bonus_data_KB, bonus_data_MB
 
-        let data_purchased = bundleIDMapping[bundleId],bonus_validity
+        let data_purchased = bundleIDMapping[bundleId], bonus_validity
 
-        if (bundleId <= 14 ){
-            bonus_data_KB =Math.trunc((parseFloat(data_purchased)/2)*1048576).toString()
-            bonus_data_MB = Math.trunc(bonus_data_KB/1024).toString()
-            bonus_validity="15"
+        if (bundleId <= 14) {
+            bonus_data_KB = Math.trunc((parseFloat(data_purchased) / 2) * 1048576).toString()
+            bonus_data_MB = Math.trunc(bonus_data_KB / 1024).toString()
+            bonus_validity = "15"
 
-        }else {
-            bonus_data_KB =Math.trunc((parseFloat(data_purchased))*1048576).toString()
-            bonus_data_MB = Math.trunc(bonus_data_KB/1024).toString()
-            bonus_validity="30"
+        } else {
+            bonus_data_KB = Math.trunc((parseFloat(data_purchased)) * 1048576).toString()
+            bonus_data_MB = Math.trunc(bonus_data_KB / 1024).toString()
+            bonus_validity = "30"
         }
-        return  {
+        return {
             bonus_data_KB,
             bonus_data_MB,
             data_purchased,
             bonus_validity
         }
 
-    }else return null
+    } else return null
 
 }
