@@ -9,6 +9,8 @@ const axios = require("axios");
 
 const mysql = require("mysql2");
 
+require('dotenv').config()
+
 const soapRequest = require("easy-soap-request")
 
 const options = {
@@ -33,7 +35,7 @@ const options = {
 const url = "http://api.hubtel.com/v1/messages/";
 const headers = {
     "Content-Type": "application/json",
-    Authorization: "Basic Y3BlcGZ4Z2w6Z3Rnb3B0c3E="
+    Authorization: `${process.env.SMS_AUTH}`
 };
 
 const sequelize = require("./sequeilze_dir/sql_database");
@@ -360,8 +362,8 @@ async function getBundlePurchased(subscriberNumber) {
    <soapenv:Header/>
    <soapenv:Body>
       <pi:CCSCD1_QRY>
-         <pi:username>admin</pi:username>
-         <pi:password>admin</pi:password>
+         <pi:username>${process.env.PI_USER}</pi:username>
+         <pi:password>${process.env.PI_PASS}</pi:password>
          <pi:MSISDN>${subscriberNumber}</pi:MSISDN>
          <pi:LIST_TYPE>BALANCE</pi:LIST_TYPE>
          <pi:WALLET_TYPE>Primary</pi:WALLET_TYPE>
@@ -401,8 +403,8 @@ async function updateTAG(subscriberNumber) {
    <soapenv:Header/>
    <soapenv:Body>
       <pi:CCSCD9_CHG>
-         <pi:username>admin</pi:username>
-         <pi:password>admin</pi:password>
+         <pi:username>${process.env.PI_USER}</pi:username>
+         <pi:password>${process.env.PASS}</pi:password>
          <pi:MSISDN>${subscriberNumber}</pi:MSISDN>
          <pi:TAG>NewActivateTag</pi:TAG>
          <pi:VALUE>50GB_Promo</pi:VALUE>
