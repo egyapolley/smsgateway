@@ -33,6 +33,7 @@ const options = {
 };
 
 const url = "http://api.hubtel.com/v1/messages/";
+console.log(process.env.SMS_AUTH)
 const headers = {
     "Content-Type": "application/json",
     Authorization: `${process.env.SMS_AUTH}`
@@ -147,17 +148,19 @@ const bundleIDMapping = {
                                     const promo_balance = await getPromoBalance(msisdn);
                                     if (promo_balance) {
                                         let current_balance = parseFloat(promo_balance.value);
-                                        used_value = ((51200 - current_balance) / 1024.0).toFixed(3);
+                                        used_value = ((30720 - current_balance) / 1024.0).toFixed(3);
                                     } else {
-                                        used_value = 50;
+                                        used_value = 30;
                                     }
 
                                 }
-                                if (await updateTAG(msisdn)) {
-                                    smsContent = smsContent.replace("UUUUUU", `${used_value}`);
-                                } else {
-                                    smsContent = null
-                                }
+                                // if (await updateTAG(msisdn)) {
+                                //     smsContent = smsContent.replace("UUUUUU", `${used_value}`);
+                                // } else {
+                                //     smsContent = null
+                                // }
+
+                                smsContent =`You have used ${used_value}GB of the FREE 30GB  data on ${surflineNumber}. Get 6GB FREE bonus on your next top up by dialling *718*77# to buy a bundle now. T&Cs apply`
                                 break;
 
                             case "2002":
@@ -247,8 +250,11 @@ function pushSMS(smsContent, to_msisdn, res) {
 }
 
 async function pushSMS_Save(smsContent, to_msisdn, res, surflineNumber, smsType) {
-    console.log(typeof smsType, smsType)
-    console.log(smsType.includes("others"))
+
+    const is50GBValid = await check50GBActivated(surflineNumber)
+    if (is50GBValid) return res.end("success")
+
+
 
     if (smsContent) {
         let messagebody = {
@@ -389,6 +395,7 @@ async function getBundlePurchased(subscriberNumber) {
 }
 
 async function updateTAG(subscriberNumber) {
+    console.log(process.env.PI_USER, process.env.PI_PASS)
 
 
     try {
@@ -451,5 +458,16 @@ function getBonusAmount(bundleId) {
         }
 
     } else return null
+
+}
+
+async function check50GBActivated(msisdn) {
+    try {
+        const {data} = await axios.get("http://localhost:8902/check50GB", {params: {msisdn}})
+        return data.status
+    } catch (ex) {
+        console.log(ex)
+        return false
+    }
 
 }
