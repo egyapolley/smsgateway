@@ -165,14 +165,13 @@ const bundleIDMapping = {
 
                             case "2002":
                                 smsContent = null
-
-                                let bundleId = await getBundlePurchased(msisdn);
-                                if (bundleId) {
-                                    let bonus_details = getBonusAmount(bundleId)
-                                    if (bonus_details) {
-                                        smsContent = `You have successfully purchased ${bonus_details.data_purchased}GB bundle on 0${surflineNumber}. You've received ${bonus_details.bonus_data_MB}MB as bonus valid for ${bonus_details.bonus_validity} days. Dial *718*77# to do more. Thank you`
-                                    }
-                                }
+                                // let bundleId = await getBundlePurchased(msisdn);
+                                // if (bundleId) {
+                                //     let bonus_details = getBonusAmount(bundleId)
+                                //     if (bonus_details) {
+                                //         smsContent = `You have successfully purchased ${bonus_details.data_purchased}GB bundle on 0${surflineNumber}. You've received ${bonus_details.bonus_data_MB}MB as bonus valid for ${bonus_details.bonus_validity} days. Dial *718*77# to do more. Thank you`
+                                //     }
+                                // }
                                 break;
                             case "2003":
                             case "2004":
@@ -180,7 +179,8 @@ const bundleIDMapping = {
                             case "2006":
                             case "2007":
                             case "2008":
-                                if (!await updateTAG(msisdn)) smsContent = null
+                                //if (!await updateTAG(msisdn)) smsContent = null
+                                smsContent=null
                                 break;
 
                             case "2009":
