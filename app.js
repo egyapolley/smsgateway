@@ -73,7 +73,11 @@ const bundleIDMapping = {
     51: "Ride ON",
     60: "Bolt Lite",
     61: "Bolt",
-    70: "Weekend(10.5GB)"
+    70: "Weekend(10.5GB)",
+    101 : "BingeXtra",
+    102: "Zoom",
+    103:"Work Streak",
+    104: "After Hours"
 };
 
 
