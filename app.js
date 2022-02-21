@@ -164,7 +164,8 @@ const bundleIDMapping = {
                                 //     smsContent = null
                                 // }
 
-                                smsContent =`You have used ${used_value}GB of the FREE 30GB  data on ${surflineNumber}. Get 6GB FREE bonus on your next top up by dialling *718*77# to buy a bundle now. T&Cs apply`
+                                //smsContent =`You have used ${used_value}GB of the FREE 30GB  data on ${surflineNumber}. Get 6GB FREE bonus on your next top up by dialling *718*77# to buy a bundle now. T&Cs apply`
+                                smsContent = null
                                 break;
 
                             case "2002":
